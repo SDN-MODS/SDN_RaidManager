@@ -1,7 +1,7 @@
 modded class BaseBuildingBase
 {
 	private static ref map<string, int> s_RaidBlockedMsgCooldown = new map<string, int>();
-	private ref Timer m_RaidTimeStateTimer;
+	private ref Timer m_SDN_RaidManagerStateTimer;
 
 	override void EEInit()
 	{
@@ -12,43 +12,43 @@ modded class BaseBuildingBase
 			return;
 		}
 
-		RaidTimeRefreshDamageState();
+		SDN_RaidManagerRefreshDamageState();
 
-		if (!m_RaidTimeStateTimer)
+		if (!m_SDN_RaidManagerStateTimer)
 		{
-			m_RaidTimeStateTimer = new Timer(CALL_CATEGORY_SYSTEM);
+			m_SDN_RaidManagerStateTimer = new Timer(CALL_CATEGORY_SYSTEM);
 		}
 
 		// Keep damage state synced with schedule transitions.
-		m_RaidTimeStateTimer.Run(15.0, this, "RaidTimeRefreshDamageState", NULL, true);
+		m_SDN_RaidManagerStateTimer.Run(15.0, this, "SDN_RaidManagerRefreshDamageState", NULL, true);
 	}
 
-	void RaidTimeRefreshDamageState()
+	void SDN_RaidManagerRefreshDamageState()
 	{
 		if (!GetGame() || !GetGame().IsServer())
 		{
 			return;
 		}
 
-		RaidTimeManager manager = RaidTimeManager.GetInstance();
+		SDN_RaidManagerManager manager = SDN_RaidManagerManager.GetInstance();
 		if (!manager || !manager.IsEnabled())
 		{
 			SetAllowDamage(true);
 			return;
 		}
 
-		SetAllowDamage(manager.IsRaidTime());
+		SetAllowDamage(manager.IsSDN_RaidManager());
 	}
 
 	override void EEHitBy(TotalDamageResult damageResult, int damageType, EntityAI source, int component, string dmgZone, string ammo, vector modelPos, float speedCoef)
 	{
 		if (GetGame() && GetGame().IsServer())
 		{
-			RaidTimeManager manager = RaidTimeManager.GetInstance();
-			if (manager && manager.IsEnabled() && !manager.IsRaidTime())
+			SDN_RaidManagerManager manager = SDN_RaidManagerManager.GetInstance();
+			if (manager && manager.IsEnabled() && !manager.IsSDN_RaidManager())
 			{
 				SetAllowDamage(false);
-				RaidTimeNotifyBlockedHit(source, manager);
+				SDN_RaidManagerNotifyBlockedHit(source, manager);
 				return;
 			}
 		}
@@ -56,7 +56,7 @@ modded class BaseBuildingBase
 		super.EEHitBy(damageResult, damageType, source, component, dmgZone, ammo, modelPos, speedCoef);
 	}
 
-	private void RaidTimeNotifyBlockedHit(EntityAI source, RaidTimeManager manager)
+	private void SDN_RaidManagerNotifyBlockedHit(EntityAI source, SDN_RaidManagerManager manager)
 	{
 		if (!source || !manager)
 		{

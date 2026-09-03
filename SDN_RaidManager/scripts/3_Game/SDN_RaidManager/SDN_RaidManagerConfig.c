@@ -6,7 +6,7 @@ class RaidDayWindow
 	int Duration = 180;
 }
 
-class RaidTimeConfig
+class SDN_RaidManagerConfig
 {
 	ref array<ref RaidDayWindow> RaidDays = new array<ref RaidDayWindow>();
 	string DiscordWebhookUrl = "";
@@ -20,7 +20,7 @@ class RaidTimeConfig
 	string RaidUnavailablePlayerMessage = "Raid is not available right now.";
 	int PlayerMessageCooldownSeconds = 10;
 
-	void RaidTimeConfig()
+	void SDN_RaidManagerConfig()
 	{
 		if (RaidDays.Count() == 0)
 		{
