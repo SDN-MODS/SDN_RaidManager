@@ -1,6 +1,6 @@
 class CfgPatches
 {
-	class RaidTime
+	class SDN_RaidManager
 	{
 		units[] = {};
 		weapons[] = {};
@@ -11,12 +11,12 @@ class CfgPatches
 
 class CfgMods
 {
-	class RaidTime
+	class SDN_RaidManager
 	{
-		dir = "RaidTime";
-		name = "RaidTime";
-		author = "S3NZ4T10N";
-		credits = "S3NZ4T10N | SteamID: 76561198995988155";
+		dir = "SDN_RaidManager";
+		name = "SDN_RaidManager";
+		author = "SafeDoNordeste";
+		credits = "SafeDoNordeste";
 		type = "mod";
 		dependencies[] = { "Game", "World", "Mission" };
 
@@ -24,15 +24,15 @@ class CfgMods
 		{
 			class gameScriptModule
 			{
-				files[] = { "RaidTime/scripts/3_Game" };
+				files[] = { "SDN_RaidManager/scripts/3_Game" };
 			};
 			class worldScriptModule
 			{
-				files[] = { "RaidTime/scripts/4_World" };
+				files[] = { "SDN_RaidManager/scripts/4_World" };
 			};
 			class missionScriptModule
 			{
-				files[] = { "RaidTime/scripts/5_Mission" };
+				files[] = { "SDN_RaidManager/scripts/5_Mission" };
 			};
 		};
 	};

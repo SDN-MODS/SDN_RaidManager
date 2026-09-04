@@ -1,13 +1,13 @@
-class RaidTimeManager
+class SDN_RaidManagerManager
 {
-	private static ref RaidTimeManager s_Instance;
+	private static ref SDN_RaidManagerManager s_Instance;
 
-	private const string PROFILE_DIR = "$profile:RaidTime";
-	private const string CONFIG_PATH = "$profile:RaidTime/RaidTimeConfig.json";
-	private const string LEGACY_CONFIG_PATH = "$profile:RaidTimeConfig.json";
-	private const string LOG_PATH = "$profile:RaidTime/RaidTime.log";
+	private const string PROFILE_DIR = "$profile:SDN_MODS/SDN_RaidManager";
+	private const string CONFIG_PATH = "$profile:SDN_MODS/SDN_RaidManager/SDN_RaidManagerConfig.json";
+	private const string LEGACY_CONFIG_PATH = "$profile:SDN_MODS/SDN_RaidManagerConfig.json";
+	private const string LOG_PATH = "$profile:SDN_MODS/SDN_Logs/SDN_RaidManager_Logs/SDN_RaidManager.log";
 
-	private ref RaidTimeConfig m_Config;
+	private ref SDN_RaidManagerConfig m_Config;
 	private bool m_Initialized;
 	private ref Timer m_AutoReloadTimer;
 	private int m_LastRaidState = -1;
@@ -19,11 +19,11 @@ class RaidTimeManager
 	private RestContext m_DiscordContext;
 	private string m_DiscordRequestPath = "";
 
-	static RaidTimeManager GetInstance()
+	static SDN_RaidManagerManager GetInstance()
 	{
 		if (!s_Instance)
 		{
-			s_Instance = new RaidTimeManager();
+			s_Instance = new SDN_RaidManagerManager();
 		}
 
 		return s_Instance;
@@ -68,7 +68,7 @@ class RaidTimeManager
 		return m_Config.PlayerMessageCooldownSeconds;
 	}
 
-	bool IsRaidTime()
+	bool IsSDN_RaidManager()
 	{
 		if (!m_Initialized || !m_Config || !m_Config.RaidDays || m_Config.RaidDays.Count() == 0)
 		{
@@ -141,7 +141,7 @@ class RaidTimeManager
 
 		if (!FileExist(CONFIG_PATH))
 		{
-			m_Config = new RaidTimeConfig();
+			m_Config = new SDN_RaidManagerConfig();
 			NormalizeConfig();
 			SaveConfig();
 			SetupDiscordContextIfChanged();
@@ -160,9 +160,9 @@ class RaidTimeManager
 			return;
 		}
 
-		RaidTimeConfig loadedConfig = new RaidTimeConfig();
+		SDN_RaidManagerConfig loadedConfig = new SDN_RaidManagerConfig();
 		string errorMessage = "";
-		bool loadedOk = JsonFileLoader<RaidTimeConfig>.LoadFile(CONFIG_PATH, loadedConfig, errorMessage);
+		bool loadedOk = JsonFileLoader<SDN_RaidManagerConfig>.LoadFile(CONFIG_PATH, loadedConfig, errorMessage);
 		if (!loadedOk)
 		{
 			LogInfo("Config parse error. Keep previous config. Error: " + errorMessage);
@@ -186,7 +186,7 @@ class RaidTimeManager
 			return;
 		}
 
-		JsonFileLoader<RaidTimeConfig>.JsonSaveFile(CONFIG_PATH, m_Config);
+		JsonFileLoader<SDN_RaidManagerConfig>.JsonSaveFile(CONFIG_PATH, m_Config);
 		m_LastConfigContent = ReadWholeFile(CONFIG_PATH);
 	}
 
@@ -194,7 +194,7 @@ class RaidTimeManager
 	{
 		if (!m_Config)
 		{
-			m_Config = new RaidTimeConfig();
+			m_Config = new SDN_RaidManagerConfig();
 		}
 
 		if (!m_Config.RaidDays)
@@ -242,7 +242,7 @@ class RaidTimeManager
 
 	private void UpdateRaidStateAndNotify()
 	{
-		bool raidNow = IsRaidTime();
+		bool raidNow = IsSDN_RaidManager();
 		int state = 0;
 		if (raidNow)
 		{
@@ -296,7 +296,7 @@ class RaidTimeManager
 		}
 
 		m_LastHeartbeatLogMs = nowMs;
-		if (IsRaidTime())
+		if (IsSDN_RaidManager())
 		{
 			LogInfo("Heartbeat: RAID ON | Now: " + GetTimestamp());
 		}
@@ -383,7 +383,7 @@ class RaidTimeManager
 			return;
 		}
 
-		string payload = "{\"content\":\"[RaidTime] " + title + " - " + text + "\"}";
+		string payload = "{\"content\":\"[SDN_RaidManager] " + title + " - " + text + "\"}";
 		m_DiscordContext.POST_now(m_DiscordRequestPath, payload);
 	}
 
@@ -408,7 +408,10 @@ class RaidTimeManager
 
 	private void EnsureProfileFolder()
 	{
-		MakeDirectory(PROFILE_DIR);
+		MakeDirectory("$profile:SDN_MODS");
+		MakeDirectory("$profile:SDN_MODS/SDN_RaidManager");
+		MakeDirectory("$profile:SDN_MODS/SDN_Logs");
+		MakeDirectory("$profile:SDN_MODS/SDN_Logs/SDN_RaidManager_Logs");
 	}
 
 	private void MigrateLegacyConfigIfNeeded()
@@ -418,8 +421,8 @@ class RaidTimeManager
 			return;
 		}
 
-		RaidTimeConfig legacyConfig = new RaidTimeConfig();
-		JsonFileLoader<RaidTimeConfig>.JsonLoadFile(LEGACY_CONFIG_PATH, legacyConfig);
+		SDN_RaidManagerConfig legacyConfig = new SDN_RaidManagerConfig();
+		JsonFileLoader<SDN_RaidManagerConfig>.JsonLoadFile(LEGACY_CONFIG_PATH, legacyConfig);
 		m_Config = legacyConfig;
 		NormalizeConfig();
 		SaveConfig();
@@ -429,7 +432,7 @@ class RaidTimeManager
 	private void LogInfo(string message)
 	{
 		string stamp = GetTimestamp();
-		string line = "[RaidTime] " + stamp + " | " + message;
+		string line = "[SDN_RaidManager] " + stamp + " | " + message;
 		Print(line);
 
 		if (!m_Config || !m_Config.EnableFileLog)
