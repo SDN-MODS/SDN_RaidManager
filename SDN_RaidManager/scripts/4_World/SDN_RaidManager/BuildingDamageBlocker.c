@@ -51,6 +51,32 @@ modded class BaseBuildingBase
 			}
 		}
 
+		// For RaG_BB_Base walls, we must heal the exact damage the engine forcibly inflicted
+		// if the impact zone was NOT a door during raid time.
+		if (this.IsKindOf("RaG_BB_Base") && damageResult)
+		{
+			bool isExplo = damageType == DamageType.EXPLOSION;
+			if (!isExplo && !SDN_IsDoorDamageZone(dmgZone))
+			{
+				float damageDealt = damageResult.GetDamage("", "Health");
+				if (damageDealt > 0)
+				{
+					AddHealth("", "Health", damageDealt);
+					if (dmgZone != "")
+					{
+						float zoneDamage = damageResult.GetDamage(dmgZone, "Health");
+						if (zoneDamage > 0)
+						{
+							AddHealth(dmgZone, "Health", zoneDamage);
+						}
+					}
+				}
+				// Still play hit effects via super if needed, or return entirely to block sounds.
+				// We return to mute the "break" entirely.
+				return;
+			}
+		}
+
 		super.EEHitBy(damageResult, damageType, source, component, dmgZone, ammo, modelPos, speedCoef);
 	}
 
