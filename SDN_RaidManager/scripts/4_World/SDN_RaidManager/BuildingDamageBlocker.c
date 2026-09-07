@@ -55,8 +55,7 @@ modded class BaseBuildingBase
 		// if the impact zone was NOT a door during raid time.
 		if (this.IsKindOf("RaG_BB_Base") && damageResult)
 		{
-			bool isExplo = damageType == DamageType.EXPLOSION;
-			if (!isExplo && !SDN_IsDoorDamageZone(dmgZone))
+			if (!SDN_IsDoorDamageZone(dmgZone))
 			{
 				float damageDealt = damageResult.GetDamage("", "Health");
 				if (damageDealt > 0)
