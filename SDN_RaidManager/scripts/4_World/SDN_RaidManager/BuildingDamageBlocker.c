@@ -1,7 +1,6 @@
 modded class BaseBuildingBase
 {
 	private static ref map<string, int> s_RaidBlockedMsgCooldown = new map<string, int>();
-	private ref Timer m_SDN_RaidManagerStateTimer;
 
 	override void EEInit()
 	{
@@ -12,32 +11,9 @@ modded class BaseBuildingBase
 			return;
 		}
 
-		SDN_RaidManagerRefreshDamageState();
-
-		if (!m_SDN_RaidManagerStateTimer)
-		{
-			m_SDN_RaidManagerStateTimer = new Timer(CALL_CATEGORY_SYSTEM);
-		}
-
-		// Keep damage state synced with schedule transitions.
-		m_SDN_RaidManagerStateTimer.Run(15.0, this, "SDN_RaidManagerRefreshDamageState", NULL, true);
-	}
-
-	void SDN_RaidManagerRefreshDamageState()
-	{
-		if (!GetGame() || !GetGame().IsServer())
-		{
-			return;
-		}
-
-		SDN_RaidManagerManager manager = SDN_RaidManagerManager.GetInstance();
-		if (!manager || !manager.IsEnabled())
-		{
-			SetAllowDamage(true);
-			return;
-		}
-
-		SetAllowDamage(manager.IsSDN_RaidManager());
+		// Sets initial state to allow damage tracking. Actual raid checks
+		// are now handled instantly at EEOnDamageCalculated and EEHitBy for performance optimization.
+		SetAllowDamage(true);
 	}
 
 	override void EEHitBy(TotalDamageResult damageResult, int damageType, EntityAI source, int component, string dmgZone, string ammo, vector modelPos, float speedCoef)
@@ -47,7 +23,6 @@ modded class BaseBuildingBase
 			SDN_RaidManagerManager manager = SDN_RaidManagerManager.GetInstance();
 			if (manager && manager.IsEnabled() && !manager.IsSDN_RaidManager())
 			{
-				SetAllowDamage(false);
 				SDN_RaidManagerNotifyBlockedHit(source, manager);
 				return;
 			}
@@ -66,11 +41,13 @@ modded class BaseBuildingBase
 			{
 				if (!manager.IsSDN_RaidManager())
 				{
+					// Not raid time: Block damage outright and notify
 					SDN_RaidManagerNotifyBlockedHit(source, manager);
 					return false;
 				}
 				else
 				{
+					// Raid is active
 					if (manager.IsRagCompatibilityEnabled() && this.IsKindOf("RaG_BB_Base"))
 					{
 						// Dynamic compatibility bypasses further logic overrides of this class
