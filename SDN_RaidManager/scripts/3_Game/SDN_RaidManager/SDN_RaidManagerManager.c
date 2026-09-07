@@ -19,9 +19,9 @@ class SDN_RaidManagerManager
 	private RestContext m_DiscordContext;
 	private string m_DiscordRequestPath = "";
 
-	private ref array<BaseBuildingBase> m_AllBases = new array<BaseBuildingBase>();
+	private ref array<Object> m_AllBases = new array<Object>();
 
-	void RegisterBase(BaseBuildingBase baseObj)
+	void RegisterBase(Object baseObj)
 	{
 		if (baseObj && m_AllBases.Find(baseObj) == -1)
 		{
@@ -29,7 +29,7 @@ class SDN_RaidManagerManager
 		}
 	}
 
-	void UnregisterBase(BaseBuildingBase baseObj)
+	void UnregisterBase(Object baseObj)
 	{
 		if (baseObj)
 		{
@@ -41,7 +41,7 @@ class SDN_RaidManagerManager
 	{
 		for (int i = m_AllBases.Count() - 1; i >= 0; i--)
 		{
-			BaseBuildingBase b = m_AllBases.Get(i);
+			Object b = m_AllBases.Get(i);
 			if (!b)
 			{
 				m_AllBases.RemoveOrdered(i);
