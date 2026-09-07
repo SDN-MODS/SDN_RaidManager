@@ -19,6 +19,38 @@ class SDN_RaidManagerManager
 	private RestContext m_DiscordContext;
 	private string m_DiscordRequestPath = "";
 
+	private ref array<BaseBuildingBase> m_AllBases = new array<BaseBuildingBase>();
+
+	void RegisterBase(BaseBuildingBase baseObj)
+	{
+		if (baseObj && m_AllBases.Find(baseObj) == -1)
+		{
+			m_AllBases.Insert(baseObj);
+		}
+	}
+
+	void UnregisterBase(BaseBuildingBase baseObj)
+	{
+		if (baseObj)
+		{
+			m_AllBases.RemoveItem(baseObj);
+		}
+	}
+
+	private void UpdateAllBasesDamageState(bool allowDamage)
+	{
+		for (int i = m_AllBases.Count() - 1; i >= 0; i--)
+		{
+			BaseBuildingBase b = m_AllBases.Get(i);
+			if (!b)
+			{
+				m_AllBases.RemoveOrdered(i);
+				continue;
+			}
+			b.SetAllowDamage(allowDamage);
+		}
+	}
+
 	static SDN_RaidManagerManager GetInstance()
 	{
 		if (!s_Instance)
@@ -270,6 +302,7 @@ class SDN_RaidManagerManager
 			{
 				LogInfo("Initial state: RAID OFF");
 			}
+			UpdateAllBasesDamageState(raidNow);
 			return;
 		}
 
@@ -289,6 +322,8 @@ class SDN_RaidManagerManager
 			LogInfo("State changed: RAID END");
 			SendDiscordEvent(m_Config.DiscordEndTitle, m_Config.DiscordEndMessage, 15548997);
 		}
+
+		UpdateAllBasesDamageState(raidNow);
 	}
 
 	private void LogHeartbeatIfNeeded()

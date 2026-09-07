@@ -13,7 +13,30 @@ modded class BaseBuildingBase
 
 		// Sets initial state to allow damage tracking. Actual raid checks
 		// are now handled instantly at EEOnDamageCalculated and EEHitBy for performance optimization.
-		SetAllowDamage(true);
+		SDN_RaidManagerManager manager = SDN_RaidManagerManager.GetInstance();
+		if (manager)
+		{
+			manager.RegisterBase(this);
+			SetAllowDamage(manager.IsSDN_RaidManager());
+		}
+		else
+		{
+			SetAllowDamage(true);
+		}
+	}
+
+	override void EEDelete(EntityAI parent)
+	{
+		super.EEDelete(parent);
+
+		if (GetGame() && GetGame().IsServer())
+		{
+			SDN_RaidManagerManager manager = SDN_RaidManagerManager.GetInstance();
+			if (manager)
+			{
+				manager.UnregisterBase(this);
+			}
+		}
 	}
 
 	override void EEHitBy(TotalDamageResult damageResult, int damageType, EntityAI source, int component, string dmgZone, string ammo, vector modelPos, float speedCoef)
