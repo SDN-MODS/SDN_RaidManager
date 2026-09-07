@@ -100,14 +100,6 @@ class SDN_RaidManagerManager
 		return m_Config.PlayerMessageCooldownSeconds;
 	}
 
-	bool IsRagCompatibilityEnabled()
-	{
-		if (!m_Config)
-		{
-			return false;
-		}
-		return m_Config.EnableRagCompatibility;
-	}
 
 	bool IsSDN_RaidManager()
 	{

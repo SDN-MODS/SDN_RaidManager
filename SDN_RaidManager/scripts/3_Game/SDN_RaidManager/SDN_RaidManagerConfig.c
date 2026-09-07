@@ -19,7 +19,6 @@ class SDN_RaidManagerConfig
 	string DiscordEndMessage = "Raid time ended. Damage to base buildings is disabled.";
 	string RaidUnavailablePlayerMessage = "Raid is not available right now.";
 	int PlayerMessageCooldownSeconds = 10;
-	bool EnableRagCompatibility = false;
 
 	void SDN_RaidManagerConfig()
 	{

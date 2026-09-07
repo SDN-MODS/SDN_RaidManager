@@ -60,24 +60,11 @@ modded class BaseBuildingBase
 		{
 			SDN_RaidManagerManager manager = SDN_RaidManagerManager.GetInstance();
 
-			if (manager && manager.IsEnabled())
+			if (manager && manager.IsEnabled() && !manager.IsSDN_RaidManager())
 			{
-				if (!manager.IsSDN_RaidManager())
-				{
-					// Not raid time: Block damage outright and notify
-					SDN_RaidManagerNotifyBlockedHit(source, manager);
-					return false;
-				}
-				else
-				{
-					// Raid is active
-					if (manager.IsRagCompatibilityEnabled() && this.IsKindOf("RaG_BB_Base"))
-					{
-						// Dynamic compatibility bypasses further logic overrides of this class
-						// and returns control straight back to RaG base via super logic
-						return super.EEOnDamageCalculated(damageResult, damageType, source, component, dmgZone, ammo, modelPos, speedCoef);
-					}
-				}
+				// Not raid time: Block damage outright and notify
+				SDN_RaidManagerNotifyBlockedHit(source, manager);
+				return false;
 			}
 		}
 
