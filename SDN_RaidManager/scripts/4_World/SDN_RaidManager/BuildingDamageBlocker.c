@@ -61,10 +61,23 @@ modded class BaseBuildingBase
 		if (GetGame() && GetGame().IsServer())
 		{
 			SDN_RaidManagerManager manager = SDN_RaidManagerManager.GetInstance();
-			if (manager && manager.IsEnabled() && !manager.IsSDN_RaidManager())
+
+			if (manager && manager.IsEnabled())
 			{
-				SDN_RaidManagerNotifyBlockedHit(source, manager);
-				return false;
+				if (!manager.IsSDN_RaidManager())
+				{
+					SDN_RaidManagerNotifyBlockedHit(source, manager);
+					return false;
+				}
+				else
+				{
+					if (manager.IsRagCompatibilityEnabled() && this.IsKindOf("RaG_BB_Base"))
+					{
+						// Dynamic compatibility bypasses further logic overrides of this class
+						// and returns control straight back to RaG base via super logic
+						return super.EEOnDamageCalculated(damageResult, damageType, source, component, dmgZone, ammo, modelPos, speedCoef);
+					}
+				}
 			}
 		}
 

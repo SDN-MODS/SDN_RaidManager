@@ -68,6 +68,15 @@ class SDN_RaidManagerManager
 		return m_Config.PlayerMessageCooldownSeconds;
 	}
 
+	bool IsRagCompatibilityEnabled()
+	{
+		if (!m_Config)
+		{
+			return false;
+		}
+		return m_Config.EnableRagCompatibility;
+	}
+
 	bool IsSDN_RaidManager()
 	{
 		if (!m_Initialized || !m_Config || !m_Config.RaidDays || m_Config.RaidDays.Count() == 0)
