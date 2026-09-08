@@ -51,31 +51,6 @@ modded class BaseBuildingBase
 			}
 		}
 
-		// For RaG_BB_Base walls, we must heal the exact damage the engine forcibly inflicted
-		// if the impact zone was NOT a door during raid time.
-		if (this.IsKindOf("RaG_BB_Base") && damageResult)
-		{
-			if (!SDN_IsDoorDamageZone(dmgZone))
-			{
-				float damageDealt = damageResult.GetDamage("", "Health");
-				if (damageDealt > 0)
-				{
-					AddHealth("", "Health", damageDealt);
-					if (dmgZone != "")
-					{
-						float zoneDamage = damageResult.GetDamage(dmgZone, "Health");
-						if (zoneDamage > 0)
-						{
-							AddHealth(dmgZone, "Health", zoneDamage);
-						}
-					}
-				}
-				// Still play hit effects via super if needed, or return entirely to block sounds.
-				// We return to mute the "break" entirely.
-				return;
-			}
-		}
-
 		super.EEHitBy(damageResult, damageType, source, component, dmgZone, ammo, modelPos, speedCoef);
 	}
 
@@ -93,53 +68,7 @@ modded class BaseBuildingBase
 			}
 		}
 
-		// RaG Specific Door-Only damage enforcement during Raid
-		if (this.IsKindOf("RaG_BB_Base"))
-		{
-			bool isExplosion = damageType == DamageType.EXPLOSION;
-			if (isExplosion)
-			{
-				string doorZone = SDN_GetPrimaryDoorDamageZone();
-				if (doorZone != "")
-				{
-					float damage = damageResult.GetHighestDamage("Health");
-					AddHealth(doorZone, "Health", -damage);
-				}
-				return false;
-			}
-
-			if (SDN_IsDoorDamageZone(dmgZone))
-			{
-				return super.EEOnDamageCalculated(damageResult, damageType, source, component, dmgZone, ammo, modelPos, speedCoef);
-			}
-
-			return false;
-		}
-
 		return super.EEOnDamageCalculated(damageResult, damageType, source, component, dmgZone, ammo, modelPos, speedCoef);
-	}
-
-	string SDN_GetPrimaryDoorDamageZone()
-	{
-		array<string> doors = {"Wall_Gate_1", "Wall_Gate_2", "Wall_Gate_3", "Door_1", "Door_2"};
-		foreach (string zoneName : doors)
-		{
-			float health = GetHealth(zoneName, "Health");
-			if (health >= 0)
-				return zoneName;
-		}
-		return "";
-	}
-
-	bool SDN_IsDoorDamageZone(string dmgZone)
-	{
-		string lowered = dmgZone;
-		lowered.ToLower();
-		if (lowered.Contains("door") || lowered.Contains("gate"))
-		{
-			return true;
-		}
-		return false;
 	}
 
 	private void SDN_RaidManagerNotifyBlockedHit(EntityAI source, SDN_RaidManagerManager manager)
