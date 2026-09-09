@@ -12,7 +12,15 @@ modded class RaG_BB_Base
 		// by the "Door Only Damage" rule, effectively making them invincible.
 
 		if (IsBBWindow())
-			return false;
+		{
+			// If JSON allows window destruction, we return false so it bypasses our protection
+			// If JSON forbids it, we return true so the window becomes invincible alongside the wall
+			SDN_RaG_FixConfig config = SDN_RaG_FixConfig.GetInstance();
+			if (config && config.IsWindowDestructionAllowed())
+			{
+				return false;
+			}
+		}
 
 		return true;
 	}
@@ -29,11 +37,10 @@ modded class RaG_BB_Base
 			return super.EEOnDamageCalculated(damageResult, damageType, source, component, dmgZone, ammo, modelPos, speedCoef);
 		}
 
-		// At this point: DoorOnlyDamageMode is ON.
-		// If it's a solid wall (no gate), it should take NO damage at all.
+		// At this point: DoorOnlyDamageMode is ON, and we either have a gate, or we are a protected wall/window.
 		if (!HasBBGatePart())
 		{
-			return false;
+			return false; // Blocks damage calculated loop completely for protected structures without doors
 		}
 
 		// If it HAS a gate, redirect explosion damage to the door.
@@ -65,8 +72,28 @@ modded class RaG_BB_Base
 		// We must instantly heal the wall if it was hit and should be protected.
 		if (damageResult && GetRaGConfig() && GetRaGConfig().DisableDamageButDoors)
 		{
-			// If it's a solid wall OR the hit landed on the wall frame (not the door)
-			if (!HasBBGatePart() || !IsDoorDamageZone(dmgZone))
+			bool protectHit = false;
+
+			if (!HasBBGatePart())
+			{
+				protectHit = true;
+
+				if (IsBBWindow())
+				{
+					SDN_RaG_FixConfig config = SDN_RaG_FixConfig.GetInstance();
+					if (config && config.IsWindowDestructionAllowed())
+					{
+						protectHit = false; // Allow windows to bleed natively if config allows
+					}
+				}
+			}
+			else if (!IsDoorDamageZone(dmgZone))
+			{
+				// Has gate, but hit landed on wall frame
+				protectHit = true;
+			}
+
+			if (protectHit)
 			{
 				float damageDealt = damageResult.GetDamage("", "Health");
 				if (damageDealt > 0)
