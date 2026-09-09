@@ -22,14 +22,10 @@ class CfgMods
 		author = "SafeDoNordeste";
 		credits = "SafeDoNordeste";
 		type = "mod";
-		dependencies[] = { "Game", "World" };
+		dependencies[] = { "World" };
 
 		class defs
 		{
-			class gameScriptModule
-			{
-				files[] = { "SDN_RaG_Fix/scripts/3_Game" };
-			};
 			class worldScriptModule
 			{
 				files[] = { "SDN_RaG_Fix/scripts/4_World" };
