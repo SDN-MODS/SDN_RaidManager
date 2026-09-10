@@ -90,6 +90,15 @@ class SDN_RaidManagerManager
 		return m_Config.RaidUnavailablePlayerMessage;
 	}
 
+	bool IsCodeLockProtectionEnabled()
+	{
+		if (!m_Config)
+		{
+			return true;
+		}
+		return m_Config.EnableCodeLockProtection;
+	}
+
 	int GetPlayerMessageCooldownSeconds()
 	{
 		if (!m_Config)
