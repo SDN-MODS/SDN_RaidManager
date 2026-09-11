@@ -1,6 +1,6 @@
 class CfgPatches
 {
-	class SDN_RaG_Fix
+	class SDN_CodeLock_Fix
 	{
 		units[] = {};
 		weapons[] = {};
@@ -8,31 +8,28 @@ class CfgPatches
 		requiredAddons[] =
 		{
 			"DZ_Data",
-			"RaG_BaseBuild"
+			"CodeLock",
+			"SDN_RaidManager"
 		};
 	};
 };
 
 class CfgMods
 {
-	class SDN_RaG_Fix
+	class SDN_CodeLock_Fix
 	{
-		dir = "SDN_RaG_Fix";
-		name = "SDN_RaG_Fix";
+		dir = "SDN_CodeLock_Fix";
+		name = "SDN_CodeLock_Fix";
 		author = "SafeDoNordeste";
 		credits = "SafeDoNordeste";
 		type = "mod";
-		dependencies[] = { "World", "Mission" };
+		dependencies[] = { "World" };
 
 		class defs
 		{
 			class worldScriptModule
 			{
-				files[] = { "SDN_RaG_Fix/scripts/4_World" };
-			};
-			class missionScriptModule
-			{
-				files[] = { "SDN_RaG_Fix/scripts/5_Mission" };
+				files[] = { "SDN_CodeLock_Fix/scripts/4_World" };
 			};
 		};
 	};
