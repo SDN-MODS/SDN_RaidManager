@@ -19,6 +19,47 @@ class SDN_RaidManagerManager
 	private RestContext m_DiscordContext;
 	private string m_DiscordRequestPath = "";
 
+	private ref array<Object> m_AllBases = new array<Object>();
+
+	// Client Sync variables
+	private bool m_ClientIsRaidTime = false;
+	private bool m_ClientIsProtectionEnabled = true;
+
+	void RegisterBase(Object baseObj)
+	{
+		if (baseObj && m_AllBases.Find(baseObj) == -1)
+		{
+			m_AllBases.Insert(baseObj);
+		}
+	}
+
+	void UnregisterBase(Object baseObj)
+	{
+		if (baseObj)
+		{
+			m_AllBases.RemoveItem(baseObj);
+		}
+	}
+
+	private void UpdateAllBasesDamageState(bool allowDamage)
+	{
+		for (int i = m_AllBases.Count() - 1; i >= 0; i--)
+		{
+			Object b = m_AllBases.Get(i);
+			if (!b)
+			{
+				m_AllBases.RemoveOrdered(i);
+				continue;
+			}
+
+			BaseBuildingBase baseB = BaseBuildingBase.Cast(b);
+			if (baseB)
+			{
+				baseB.SetAllowDamage(allowDamage);
+			}
+		}
+	}
+
 	static SDN_RaidManagerManager GetInstance()
 	{
 		if (!s_Instance)
@@ -37,10 +78,58 @@ class SDN_RaidManagerManager
 		}
 
 		m_Initialized = true;
-		EnsureProfileFolder();
-		LoadConfig(false);
-		StartAutoReload();
-		UpdateRaidStateAndNotify();
+
+		if (GetGame().IsServer() || !GetGame().IsMultiplayer())
+		{
+			EnsureProfileFolder();
+			LoadConfig(false);
+			StartAutoReload();
+			UpdateRaidStateAndNotify();
+		}
+		else
+		{
+			// Client
+			GetGame().GetCallQueue(CALL_CATEGORY_SYSTEM).CallLater(RequestSyncFromServer, 3000, false);
+		}
+
+		GetDayZGame().Event_OnRPC.Insert(OnRPC);
+	}
+
+	void RequestSyncFromServer()
+	{
+		if (GetGame() && GetGame().IsClient())
+		{
+			ScriptRPC rpc = new ScriptRPC();
+			rpc.Send(NULL, 64221, true, NULL); // 64221 = SDN_SYNC_REQUEST
+		}
+	}
+
+	void SendSyncToClient(PlayerIdentity target = NULL)
+	{
+		if (!GetGame() || !GetGame().IsServer()) return;
+
+		ScriptRPC rpc = new ScriptRPC();
+		rpc.Write(IsSDN_RaidManager());
+		rpc.Write(IsCodeLockProtectionEnabled());
+		rpc.Send(NULL, 64222, true, target); // 64222 = SDN_SYNC_RESPONSE
+	}
+
+	void OnRPC(PlayerIdentity sender, Object target, int rpc_type, ParamsReadContext ctx)
+	{
+		if (rpc_type == 64221 && GetGame().IsServer())
+		{
+			SendSyncToClient(sender);
+		}
+		else if (rpc_type == 64222 && GetGame().IsClient())
+		{
+			bool isRaidTime;
+			bool isProtectionEnabled;
+			if (ctx.Read(isRaidTime) && ctx.Read(isProtectionEnabled))
+			{
+				m_ClientIsRaidTime = isRaidTime;
+				m_ClientIsProtectionEnabled = isProtectionEnabled;
+			}
+		}
 	}
 
 	bool IsEnabled()
@@ -70,6 +159,11 @@ class SDN_RaidManagerManager
 
 	bool IsCodeLockProtectionEnabled()
 	{
+		if (GetGame().IsClient() && GetGame().IsMultiplayer())
+		{
+			return m_ClientIsProtectionEnabled;
+		}
+
 		if (!m_Config)
 		{
 			return true;
@@ -79,6 +173,11 @@ class SDN_RaidManagerManager
 
 	bool IsSDN_RaidManager()
 	{
+		if (GetGame().IsClient() && GetGame().IsMultiplayer())
+		{
+			return m_ClientIsRaidTime;
+		}
+
 		if (!m_Initialized || !m_Config || !m_Config.RaidDays || m_Config.RaidDays.Count() == 0)
 		{
 			return false;
@@ -270,6 +369,8 @@ class SDN_RaidManagerManager
 			{
 				LogInfo("Initial state: RAID OFF");
 			}
+			UpdateAllBasesDamageState(raidNow);
+			SendSyncToClient();
 			return;
 		}
 
@@ -289,6 +390,9 @@ class SDN_RaidManagerManager
 			LogInfo("State changed: RAID END");
 			SendDiscordEvent(m_Config.DiscordEndTitle, m_Config.DiscordEndMessage, 15548997);
 		}
+
+		UpdateAllBasesDamageState(raidNow);
+		SendSyncToClient();
 	}
 
 	private void LogHeartbeatIfNeeded()
